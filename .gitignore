@@ -1,0 +1,11 @@
+/bin/
+/release/
+*.jar
+build.properties
+*.project
+*.classpath
+*.pr1
+*.txt
+*.xml
+*.zip
+*.ino
