@@ -29,12 +29,15 @@ import org.jnativehook.keyboard.NativeKeyListener;
 
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 @SuppressWarnings("serial")
 public class HotKeyDialog extends JDialog  {
 
 	private final JPanel contentPanel = new JPanel();
 	
+	public static boolean isOpen;
 	/**
 	 * Launch the application.
 	 */
@@ -56,7 +59,9 @@ public class HotKeyDialog extends JDialog  {
 	
 	private NativeKeyListener nativeKeyListener;
 	
-	public HotKeyDialog() {		
+	public HotKeyDialog() {
+		isOpen = true;
+		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		setTitle("\u0413\u043E\u0440\u044F\u0447\u0438\u0435 \u043A\u043B\u0430\u0432\u0438\u0448\u0438");
 		setType(Type.UTILITY);
 		setResizable(false);
@@ -83,6 +88,7 @@ public class HotKeyDialog extends JDialog  {
 				FormFactory.DEFAULT_ROWSPEC,
 				FormFactory.RELATED_GAP_ROWSPEC,
 				FormFactory.DEFAULT_ROWSPEC,}));
+		
 		nativeKeyListener = new NativeKeyListener() {
 			
 			@Override
@@ -107,13 +113,14 @@ public class HotKeyDialog extends JDialog  {
 			}
 		};
 		GlobalScreen.addNativeKeyListener(nativeKeyListener);
-		KeyAdapter adapter = new KeyAdapter() {
-						
+		addWindowListener(new WindowAdapter() {
 			@Override
-			public void keyPressed(KeyEvent e) {
-				
-				
+			public void windowClosing(WindowEvent e) {				
+				GlobalScreen.removeNativeKeyListener(nativeKeyListener);
 			}
+		});	
+		KeyAdapter adapter = new KeyAdapter() {						
+			
 			@Override
 			public void keyTyped(KeyEvent e) {
 				// TODO Auto-generated method stub				
@@ -214,9 +221,10 @@ public class HotKeyDialog extends JDialog  {
 				JButton okButton = new JButton("OK");				
 				buttonPane.add(okButton);				
 				okButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {						
-						Configuration.saveConfig();
+					public void actionPerformed(ActionEvent e) {
 						GlobalScreen.removeNativeKeyListener(nativeKeyListener);
+						Configuration.saveConfig();
+						isOpen = false;
 						HotKeyDialog.this.dispose();
 					}
 				});
@@ -228,7 +236,9 @@ public class HotKeyDialog extends JDialog  {
 					
 					@Override
 					public void actionPerformed(ActionEvent e) {
+						GlobalScreen.removeNativeKeyListener(nativeKeyListener);
 						Configuration.init();
+						isOpen = false;
 						HotKeyDialog.this.dispose();
 					}
 				});

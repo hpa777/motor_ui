@@ -18,6 +18,8 @@ import javax.swing.JButton;
 import javax.swing.KeyStroke;
 
 
+
+
 import java.awt.Dimension;
 
 import javax.swing.JTabbedPane;
@@ -157,32 +159,34 @@ public class MainWindow implements NativeKeyListener {
 		GlobalScreen.addNativeKeyListener(this);
 	}
 	
-	private boolean hotKeyDialogIsOpen;
 	
+	
+	
+	@SuppressWarnings("static-access")
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
-		if (hotKeyDialogIsOpen) {
+		if (program == null || program.programSteps.isEmpty() || program.busy || ProgramSettingsDialog.isOpen || HotKeyDialog.isOpen) {
+			return;
+		}		
+		int keyCode = e.getKeyCode();
+		if (Configuration.isHotKey(keyCode)) {
 			return;
 		}
-		int keyCode = e.getKeyCode();
-		if (keyCode == Configuration.current.motorToLeft) {
-			if (program == null || program.programSteps.isEmpty())
-				return;
+		if (keyCode == Configuration.current.motorToLeft) {			
 			ProgramStep step = program.programSteps.get(tabbedPanel
 					.getSelectedIndex());
 			step.keyPressed("L");
-		} else if (keyCode == Configuration.current.motorToRight) {
-			if (program == null || program.programSteps.isEmpty())
-				return;
+		} else if (keyCode == Configuration.current.motorToRight) {			
 			ProgramStep step = program.programSteps.get(tabbedPanel
 					.getSelectedIndex());
 			step.keyPressed("R");
 		}
 	}
 
+	@SuppressWarnings("static-access")
 	@Override
 	public void nativeKeyReleased(NativeKeyEvent e) {
-		if (hotKeyDialogIsOpen) {
+		if (program == null || program.programSteps.isEmpty() || program.busy || ProgramSettingsDialog.isOpen || HotKeyDialog.isOpen) {
 			return;
 		}
 		int keyCode = e.getKeyCode();
@@ -883,7 +887,7 @@ public class MainWindow implements NativeKeyListener {
 		JMenuItem settingsMenuItem = new JMenuItem(
 				"\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438");
 		settingsMenuItem.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {				
 				ProgramSettingsDialog.show(null);
 				refreshPrgButtons();
 				refreshConnectStatus();
@@ -897,10 +901,8 @@ public class MainWindow implements NativeKeyListener {
 		JMenuItem hotKeyMenuItem = new JMenuItem(
 				"\u0413\u043E\u0440\u044F\u0447\u0438\u0435 \u043A\u043B\u0430\u0432\u0438\u0448\u0438");
 		hotKeyMenuItem.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				hotKeyDialogIsOpen = true;
-				HotKeyDialog.show(null);	
-				hotKeyDialogIsOpen = false;
+			public void actionPerformed(ActionEvent e) {				
+				HotKeyDialog.show(null);				
 			}
 		});
 		settingsMenu.add(hotKeyMenuItem);

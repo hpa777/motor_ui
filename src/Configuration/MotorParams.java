@@ -15,5 +15,14 @@ public class MotorParams {
 	
 	@XStreamAsAttribute
 	public Integer lengthmin;
+	
+	@XStreamAsAttribute
+	public Integer leftkey;
+	
+	@XStreamAsAttribute
+	public Integer rightkey;
+	
+	@XStreamAsAttribute
+	public Integer stepperclick;
 
 }

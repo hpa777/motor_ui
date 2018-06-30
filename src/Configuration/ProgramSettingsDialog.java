@@ -1,6 +1,7 @@
 package Configuration;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -18,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -32,12 +34,23 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 
 @SuppressWarnings("serial")
 public class ProgramSettingsDialog extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField textField_dir;
+	
+	public static boolean isOpen;
 
 	/**
 	 * Launch the application.
@@ -55,7 +68,10 @@ public class ProgramSettingsDialog extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
+	
+	
 	public ProgramSettingsDialog() {
+		isOpen = true;
 		FocusAdapter motorNameAdapter = new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
@@ -63,6 +79,7 @@ public class ProgramSettingsDialog extends JDialog {
 				Configuration.setParametr(field.getName(), field.getText());						
 			}
 		};
+		
 		ItemListener motorVisibleListener = new ItemListener() {			
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -70,6 +87,49 @@ public class ProgramSettingsDialog extends JDialog {
 				Configuration.setParametr(checkBox.getName(), checkBox.isSelected());
 			}
 		};
+		
+		final NativeKeyListener nativeKeyListener = new NativeKeyListener() {
+			
+			@Override
+			public void nativeKeyPressed(NativeKeyEvent e) {
+				// TODO Auto-generated method stub				
+				Component component = getMostRecentFocusOwner();
+				String name = component.getName();
+				if(name.startsWith("leftkey") || name.startsWith("rightkey")) {
+					int keyCode = e.getKeyCode();						
+					Configuration.setParametr(name, keyCode);
+					((JTextField)component).setText(NativeKeyEvent.getKeyText(keyCode));
+				}
+			}
+
+			@Override
+			public void nativeKeyReleased(NativeKeyEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void nativeKeyTyped(NativeKeyEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+		GlobalScreen.addNativeKeyListener(nativeKeyListener);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				GlobalScreen.removeNativeKeyListener(nativeKeyListener);
+			}
+		});
+		KeyAdapter hotKeyAdapter = new KeyAdapter() {						
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub				
+				e.consume();
+			}
+		};
+		
 		
 		NumberFormat opnDisplayFormat = NumberFormat.getIntegerInstance();
 		opnDisplayFormat.setGroupingUsed(false);
@@ -87,7 +147,7 @@ public class ProgramSettingsDialog extends JDialog {
 		setAlwaysOnTop(true);
 		setResizable(false);
 		setModal(true);
-		setBounds(100, 100, 788, 554);
+		setBounds(100, 100, 941, 554);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -95,13 +155,13 @@ public class ProgramSettingsDialog extends JDialog {
 		{
 			JPanel panel = new JPanel();
 			panel.setBorder(new LineBorder(new Color(0, 0, 0)));
-			panel.setBounds(10, 11, 411, 352);
+			panel.setBounds(6, 35, 571, 352);
 			contentPanel.add(panel);
 			GridBagLayout gbl_panel = new GridBagLayout();
-			gbl_panel.columnWidths = new int[] { 65, 148, 14, 0, 55, 0 };
-			gbl_panel.rowHeights = new int[] { 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			gbl_panel.columnWidths = new int[] { 65, 148, 14, 0, 82, 50, 50, 71, 0 };
+			gbl_panel.rowHeights = new int[] { 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 					0, 0 };
-			gbl_panel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 1.0,
+			gbl_panel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
 					Double.MIN_VALUE };
 			gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 					0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
@@ -140,10 +200,33 @@ public class ProgramSettingsDialog extends JDialog {
 				lbln.setFont(new Font("Tahoma", Font.BOLD, 11));
 				GridBagConstraints gbc_lbln = new GridBagConstraints();
 				gbc_lbln.anchor = GridBagConstraints.NORTH;
-				gbc_lbln.insets = new Insets(0, 0, 5, 0);
+				gbc_lbln.insets = new Insets(0, 0, 5, 5);
 				gbc_lbln.gridx = 4;
 				gbc_lbln.gridy = 0;
 				panel.add(lbln, gbc_lbln);
+			}
+			
+			JLabel lblNewLabel_3 = new JLabel("<html>\u0413\u043E\u0440\u044F\u0447\u0438\u0435 \u043A\u043D\u043E\u043F\u043A\u0438<br>\u041B\u0435\u0432\u043E&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\u041F\u0440\u0430\u0432\u043E</html>");
+			lblNewLabel_3.setFont(new Font("Tahoma", Font.BOLD, 11));
+			
+			GridBagConstraints gbc_lblNewLabel_3 = new GridBagConstraints();
+			gbc_lblNewLabel_3.anchor = GridBagConstraints.NORTH;
+			gbc_lblNewLabel_3.fill = GridBagConstraints.HORIZONTAL;
+			gbc_lblNewLabel_3.insets = new Insets(0, 0, 5, 5);
+			gbc_lblNewLabel_3.gridx = 5;
+			gbc_lblNewLabel_3.gridy = 0;
+			gbc_lblNewLabel_3.gridwidth= 2;
+			panel.add(lblNewLabel_3, gbc_lblNewLabel_3);
+			{
+				JLabel lblNewLabel_4 = new JLabel("\u0421\u043A\u043E\u0440\u043E\u0441\u0442\u044C");
+				lblNewLabel_4.setFont(new Font("Tahoma", Font.BOLD, 11));
+				GridBagConstraints gbc_lblNewLabel_4 = new GridBagConstraints();
+				gbc_lblNewLabel_4.anchor = GridBagConstraints.NORTH;
+				gbc_lblNewLabel_4.fill = GridBagConstraints.HORIZONTAL;
+				gbc_lblNewLabel_4.insets = new Insets(0, 0, 5, 0);
+				gbc_lblNewLabel_4.gridx = 7;
+				gbc_lblNewLabel_4.gridy = 0;
+				panel.add(lblNewLabel_4, gbc_lblNewLabel_4);
 			}
 			{
 				JLabel label = new JLabel("\u041C\u043E\u0442\u043E\u0440 1");
@@ -196,8 +279,47 @@ public class ProgramSettingsDialog extends JDialog {
 				formattedTextField.addFocusListener(motorNameAdapter);
 				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
 				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 5);
 				gbc_formattedTextField.gridx = 4;
+				gbc_formattedTextField.gridy = 1;
+				panel.add(formattedTextField, gbc_formattedTextField);
+			}
+			{
+				JTextField textField = new JTextField();				
+				textField.setName("leftkey_1");
+				textField.setText((String)Configuration.getParametr("leftkey_1", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 5;
+				gbc_textField.gridy = 1;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+				
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("rightkey_1");				
+				textField.setText((String)Configuration.getParametr("rightkey_1", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 6;
+				gbc_textField.gridy = 1;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JFormattedTextField formattedTextField = new JFormattedTextField();
+				formattedTextField.setName("stepperclick_1");
+				formattedTextField.setValue(Configuration.getParametr(formattedTextField.getName(), false));
+				formattedTextField.addFocusListener(motorNameAdapter);
+				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_formattedTextField.gridx = 7;
 				gbc_formattedTextField.gridy = 1;
 				panel.add(formattedTextField, gbc_formattedTextField);
 			}
@@ -252,8 +374,46 @@ public class ProgramSettingsDialog extends JDialog {
 				formattedTextField.addFocusListener(motorNameAdapter);
 				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
 				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 5);
 				gbc_formattedTextField.gridx = 4;
+				gbc_formattedTextField.gridy = 2;
+				panel.add(formattedTextField, gbc_formattedTextField);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("leftkey_2");
+				textField.setText((String)Configuration.getParametr("leftkey_2", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 5;
+				gbc_textField.gridy = 2;
+				panel.add(textField, gbc_textField);			
+				textField.setColumns(10);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("rightkey_2");
+				textField.setText((String)Configuration.getParametr("rightkey_2", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 6;
+				gbc_textField.gridy = 2;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JFormattedTextField formattedTextField = new JFormattedTextField();
+				formattedTextField.setName("stepperclick_2");
+				formattedTextField.setValue(Configuration.getParametr(formattedTextField.getName(), false));
+				formattedTextField.addFocusListener(motorNameAdapter);
+				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_formattedTextField.gridx = 7;
 				gbc_formattedTextField.gridy = 2;
 				panel.add(formattedTextField, gbc_formattedTextField);
 			}
@@ -308,8 +468,46 @@ public class ProgramSettingsDialog extends JDialog {
 				formattedTextField.addFocusListener(motorNameAdapter);
 				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
 				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 5);
 				gbc_formattedTextField.gridx = 4;
+				gbc_formattedTextField.gridy = 3;
+				panel.add(formattedTextField, gbc_formattedTextField);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("leftkey_3");
+				textField.setText((String)Configuration.getParametr("leftkey_3", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 5;
+				gbc_textField.gridy = 3;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("rightkey_3");
+				textField.setText((String)Configuration.getParametr("rightkey_3", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 6;
+				gbc_textField.gridy = 3;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JFormattedTextField formattedTextField = new JFormattedTextField();
+				formattedTextField.setName("stepperclick_3");
+				formattedTextField.setValue(Configuration.getParametr(formattedTextField.getName(), false));
+				formattedTextField.addFocusListener(motorNameAdapter);
+				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_formattedTextField.gridx = 7;
 				gbc_formattedTextField.gridy = 3;
 				panel.add(formattedTextField, gbc_formattedTextField);
 			}
@@ -364,8 +562,46 @@ public class ProgramSettingsDialog extends JDialog {
 				formattedTextField.addFocusListener(motorNameAdapter);
 				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
 				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 5);
 				gbc_formattedTextField.gridx = 4;
+				gbc_formattedTextField.gridy = 4;
+				panel.add(formattedTextField, gbc_formattedTextField);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("leftkey_4");
+				textField.setText((String)Configuration.getParametr("leftkey_4", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 5;
+				gbc_textField.gridy = 4;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("rightkey_4");
+				textField.setText((String)Configuration.getParametr("rightkey_4", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 6;
+				gbc_textField.gridy = 4;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JFormattedTextField formattedTextField = new JFormattedTextField();
+				formattedTextField.setName("stepperclick_4");
+				formattedTextField.setValue(Configuration.getParametr(formattedTextField.getName(), false));
+				formattedTextField.addFocusListener(motorNameAdapter);
+				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_formattedTextField.gridx = 7;
 				gbc_formattedTextField.gridy = 4;
 				panel.add(formattedTextField, gbc_formattedTextField);
 			}
@@ -420,8 +656,46 @@ public class ProgramSettingsDialog extends JDialog {
 				formattedTextField.addFocusListener(motorNameAdapter);
 				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
 				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 5);
 				gbc_formattedTextField.gridx = 4;
+				gbc_formattedTextField.gridy = 5;
+				panel.add(formattedTextField, gbc_formattedTextField);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("leftkey_5");
+				textField.setText((String)Configuration.getParametr("leftkey_5", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 5;
+				gbc_textField.gridy = 5;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("rightkey_5");
+				textField.setText((String)Configuration.getParametr("rightkey_5", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 6;
+				gbc_textField.gridy = 5;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JFormattedTextField formattedTextField = new JFormattedTextField();
+				formattedTextField.setName("stepperclick_5");
+				formattedTextField.setValue(Configuration.getParametr(formattedTextField.getName(), false));
+				formattedTextField.addFocusListener(motorNameAdapter);
+				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_formattedTextField.gridx = 7;
 				gbc_formattedTextField.gridy = 5;
 				panel.add(formattedTextField, gbc_formattedTextField);
 			}
@@ -476,8 +750,46 @@ public class ProgramSettingsDialog extends JDialog {
 				formattedTextField.addFocusListener(motorNameAdapter);
 				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
 				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 5);
 				gbc_formattedTextField.gridx = 4;
+				gbc_formattedTextField.gridy = 6;
+				panel.add(formattedTextField, gbc_formattedTextField);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("leftkey_6");
+				textField.setText((String)Configuration.getParametr("leftkey_6", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 5;
+				gbc_textField.gridy = 6;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("rightkey_6");
+				textField.setText((String)Configuration.getParametr("rightkey_6", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 6;
+				gbc_textField.gridy = 6;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JFormattedTextField formattedTextField = new JFormattedTextField();
+				formattedTextField.setName("stepperclick_6");
+				formattedTextField.setValue(Configuration.getParametr(formattedTextField.getName(), false));
+				formattedTextField.addFocusListener(motorNameAdapter);
+				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_formattedTextField.gridx = 7;
 				gbc_formattedTextField.gridy = 6;
 				panel.add(formattedTextField, gbc_formattedTextField);
 			}
@@ -532,8 +844,46 @@ public class ProgramSettingsDialog extends JDialog {
 				formattedTextField.addFocusListener(motorNameAdapter);
 				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
 				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 5);
 				gbc_formattedTextField.gridx = 4;
+				gbc_formattedTextField.gridy = 7;
+				panel.add(formattedTextField, gbc_formattedTextField);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("leftkey_7");
+				textField.setText((String)Configuration.getParametr("leftkey_7", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 5;
+				gbc_textField.gridy = 7;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("rightkey_7");
+				textField.setText((String)Configuration.getParametr("rightkey_7", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 6;
+				gbc_textField.gridy = 7;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JFormattedTextField formattedTextField = new JFormattedTextField();
+				formattedTextField.setName("stepperclick_7");
+				formattedTextField.setValue(Configuration.getParametr(formattedTextField.getName(), false));
+				formattedTextField.addFocusListener(motorNameAdapter);
+				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_formattedTextField.gridx = 7;
 				gbc_formattedTextField.gridy = 7;
 				panel.add(formattedTextField, gbc_formattedTextField);
 			}
@@ -588,8 +938,46 @@ public class ProgramSettingsDialog extends JDialog {
 				formattedTextField.addFocusListener(motorNameAdapter);
 				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
 				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
-				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 5);
 				gbc_formattedTextField.gridx = 4;
+				gbc_formattedTextField.gridy = 8;
+				panel.add(formattedTextField, gbc_formattedTextField);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("leftkey_8");
+				textField.setText((String)Configuration.getParametr("leftkey_8", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 5;
+				gbc_textField.gridy = 8;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JTextField textField = new JTextField();
+				textField.setName("rightkey_8");
+				textField.setText((String)Configuration.getParametr("rightkey_8", false));
+				textField.addKeyListener(hotKeyAdapter);
+				GridBagConstraints gbc_textField = new GridBagConstraints();
+				gbc_textField.insets = new Insets(0, 0, 5, 5);
+				gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_textField.gridx = 6;
+				gbc_textField.gridy = 8;
+				panel.add(textField, gbc_textField);
+				textField.setColumns(10);
+			}
+			{
+				JFormattedTextField formattedTextField = new JFormattedTextField();
+				formattedTextField.setName("stepperclick_8");
+				formattedTextField.setValue(Configuration.getParametr(formattedTextField.getName(), false));
+				formattedTextField.addFocusListener(motorNameAdapter);
+				GridBagConstraints gbc_formattedTextField = new GridBagConstraints();
+				gbc_formattedTextField.insets = new Insets(0, 0, 5, 0);
+				gbc_formattedTextField.fill = GridBagConstraints.HORIZONTAL;
+				gbc_formattedTextField.gridx = 7;
 				gbc_formattedTextField.gridy = 8;
 				panel.add(formattedTextField, gbc_formattedTextField);
 			}
@@ -730,7 +1118,7 @@ public class ProgramSettingsDialog extends JDialog {
 			JPanel panel = new JPanel();
 			panel.setToolTipText("");
 			panel.setBorder(new LineBorder(new Color(0, 0, 0)));
-			panel.setBounds(431, 33, 337, 351);
+			panel.setBounds(587, 36, 337, 351);
 			contentPanel.add(panel);
 			GridBagLayout gbl_panel = new GridBagLayout();
 			gbl_panel.columnWidths = new int[] { 138, 155, 0 };
@@ -745,6 +1133,7 @@ public class ProgramSettingsDialog extends JDialog {
 						"\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435");
 				label.setFont(new Font("Tahoma", Font.BOLD, 11));
 				GridBagConstraints gbc_label = new GridBagConstraints();
+				gbc_label.anchor = GridBagConstraints.NORTH;
 				gbc_label.insets = new Insets(10, 0, 5, 5);
 				gbc_label.gridx = 0;
 				gbc_label.gridy = 0;
@@ -1130,7 +1519,7 @@ public class ProgramSettingsDialog extends JDialog {
 			JLabel label = new JLabel(
 					"\u041A\u043D\u043E\u043F\u043A\u0438 \u0444\u0438\u043A\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0445 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C");
 			label.setFont(new Font("Tahoma", Font.BOLD, 13));
-			label.setBounds(486, 11, 235, 14);
+			label.setBounds(587, 11, 235, 14);
 			contentPanel.add(label);
 		}
 		{
@@ -1150,12 +1539,12 @@ public class ProgramSettingsDialog extends JDialog {
 			JLabel lblNewLabel = new JLabel(
 					"\u0420\u0430\u0431\u043E\u0447\u0438\u0439 \u043A\u0430\u0442\u0430\u043B\u043E\u0433");
 			lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 13));
-			lblNewLabel.setBounds(308, 450, 113, 14);
+			lblNewLabel.setBounds(464, 450, 113, 14);
 			contentPanel.add(lblNewLabel);
 		}
 		{
 			textField_dir = new JTextField();
-			textField_dir.setBounds(431, 448, 315, 20);
+			textField_dir.setBounds(587, 448, 315, 20);
 			textField_dir.setText(Configuration.current.work_dir);
 			textField_dir.setEditable(false);
 			contentPanel.add(textField_dir);
@@ -1180,18 +1569,18 @@ public class ProgramSettingsDialog extends JDialog {
 					}
 				}
 			});
-			button.setBounds(746, 447, 22, 23);
+			button.setBounds(902, 447, 22, 23);
 			contentPanel.add(button);
 		}
 		
 		JLabel lblNewLabel_1 = new JLabel("\u0427\u0430\u0441\u0442\u043E\u0442\u0430 \u0442\u0430\u0439\u043C\u0435\u0440\u0430 (\u043C\u043A\u0441)");
 		lblNewLabel_1.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblNewLabel_1.setBounds(10, 374, 152, 14);
+		lblNewLabel_1.setBounds(10, 404, 152, 14);
 		contentPanel.add(lblNewLabel_1);
 		{
 			JTextField textField = new JTextField();
 			textField.setName("freq");
-			textField.setBounds(160, 374, 51, 20);
+			textField.setBounds(160, 401, 51, 20);
 			contentPanel.add(textField);
 			textField.setColumns(10);
 			textField.addFocusListener(motorNameAdapter);
@@ -1205,7 +1594,7 @@ public class ProgramSettingsDialog extends JDialog {
 				}
 			});
 			comboBox.setModel(new DefaultComboBoxModel<String>(new String[] {"\u041A\u043E\u043E\u0440\u0434\u0438\u043D\u0430\u0442\u044B", "\u0428\u0430\u0433\u0438"}));
-			comboBox.setBounds(160, 396, 99, 20);
+			comboBox.setBounds(364, 401, 99, 20);
 			comboBox.setSelectedIndex(Configuration.current.programType);
 			//Отключаем режим координат
 			comboBox.setVisible(false);
@@ -1214,15 +1603,21 @@ public class ProgramSettingsDialog extends JDialog {
 			
 			JButton button = new JButton(
 					"\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430 COM");
-			button.setBounds(625, 395, 143, 23);
+			button.setBounds(587, 400, 143, 23);
 			contentPanel.add(button);			
 			
 			JLabel label = new JLabel("\u0420\u0435\u0436\u0438\u043C \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B");
 			label.setFont(new Font("Tahoma", Font.BOLD, 11));
-			label.setBounds(10, 399, 152, 14);
+			label.setBounds(245, 404, 113, 14);
 			//Отключаем режим координат
 			label.setVisible(false);
 			contentPanel.add(label);
+			{
+				JLabel lblNewLabel_5 = new JLabel("\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u043C\u043E\u0442\u043E\u0440\u043E\u0432 \u0438 \u0440\u0435\u043B\u0435");
+				lblNewLabel_5.setFont(new Font("Tahoma", Font.BOLD, 13));
+				lblNewLabel_5.setBounds(10, 11, 220, 14);
+				contentPanel.add(lblNewLabel_5);
+			}
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {					
 					SerialPortSettings com = SerialPortDialog.show(Configuration.current.serialPortSettings);
@@ -1242,6 +1637,8 @@ public class ProgramSettingsDialog extends JDialog {
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						Configuration.saveConfig();
+						GlobalScreen.removeNativeKeyListener(nativeKeyListener);
+						isOpen = false;
 						ProgramSettingsDialog.this.dispose();
 					}
 				});
@@ -1256,6 +1653,8 @@ public class ProgramSettingsDialog extends JDialog {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						Configuration.init();
+						GlobalScreen.removeNativeKeyListener(nativeKeyListener);
+						isOpen = false;
 						ProgramSettingsDialog.this.dispose();
 					}
 				});

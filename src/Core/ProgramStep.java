@@ -356,7 +356,7 @@ public class ProgramStep implements MouseWheelListener {
 			int notches = dir.equals("L") ? -10 : 10;
 			for (MotorCommand command : motorsCmd) {
 				String cmd = String.format("wm %s %s %s",
-						command.motor, dir, 10);
+						command.motor, dir, 10);				
 				SerialPortHelper.getInstance().Write(cmd);
 			}
 			Integer c = (Integer) getValueByName("MadeSteps", false);

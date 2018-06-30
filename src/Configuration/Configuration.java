@@ -11,6 +11,8 @@ import javax.swing.KeyStroke;
 
 import org.jnativehook.keyboard.NativeKeyEvent;
 
+import Core.SerialPortHelper;
+
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
@@ -83,6 +85,24 @@ public final class Configuration {
 					param = new MotorParams();
 				}
 				param.lengthmin = Integer.parseInt((String) value);
+			} else if (params.paramField.equals("leftkey")) {
+				MotorParams param = (MotorParams) field.get(current);
+				if (param == null) {
+					param = new MotorParams();
+				}
+				param.leftkey = (Integer) value;
+			} else if (params.paramField.equals("rightkey")) {
+				MotorParams param = (MotorParams) field.get(current);
+				if (param == null) {
+					param = new MotorParams();
+				}
+				param.rightkey = (Integer) value;
+			} else if (params.paramField.equals("stepperclick")) {
+				MotorParams param = (MotorParams) field.get(current);
+				if (param == null) {
+					param = new MotorParams();
+				}
+				param.stepperclick = Integer.parseInt((String) value);
 			} else if (params.paramField.equals("hot")) {
 				field.set(current, value);
 			} else {
@@ -121,19 +141,35 @@ public final class Configuration {
 					value = param.sensor;
 				}
 			} else if (params.paramField.equals("lengthmin")) {
-				MotorParams param = (MotorParams) field.get(current);				
-				value = (param != null && param.lengthmin != null) ? param.lengthmin : 0; 
-				
+				MotorParams param = (MotorParams) field.get(current);
+				value = (param != null && param.lengthmin != null) ? param.lengthmin
+						: 0;
+
+			} else if (params.paramField.equals("leftkey")) {
+				MotorParams param = (MotorParams) field.get(current);
+				if (param.leftkey != null) {
+					value = NativeKeyEvent.getKeyText(param.leftkey);
+				}
+			} else if (params.paramField.equals("rightkey")) {
+				MotorParams param = (MotorParams) field.get(current);
+				if (param.rightkey != null) {
+					value = NativeKeyEvent.getKeyText(param.rightkey);
+				}
+			} else if (params.paramField.equals("stepperclick")) {
+				MotorParams param = (MotorParams) field.get(current);
+				value = (param != null && param.stepperclick != null) ? param.stepperclick
+						: 0;
+
 			} else if (params.paramField.equals("hot")) {
 				int keyCode = (int) field.get(current);
-				if (keyCode != 0) {					
+				if (keyCode != 0) {
 					if (!isCheckBox) {
 						value = NativeKeyEvent.getKeyText(keyCode);
-					}					
-					else {
-						value = KeyStroke.getKeyStroke(keyCode, InputEvent.CTRL_MASK);						
-					}			
-					
+					} else {
+						value = KeyStroke.getKeyStroke(keyCode,
+								InputEvent.CTRL_MASK);
+					}
+
 				} else if (isCheckBox) {
 					value = null;
 				}
@@ -159,6 +195,36 @@ public final class Configuration {
 		return current.work_dir == null ? "." : current.work_dir;
 	}
 
+	public static boolean isHotKey(int keyCode) {		
+		for (int i = 1; i <= 8; i++) {
+			try {
+				Field field = current.getClass().getDeclaredField(
+						"motor_" + String.valueOf(i));
+				MotorParams params = (MotorParams) field.get(current);
+				if (!params.visible) {
+					continue;
+				}
+				String dir = "";
+				if (params.leftkey == keyCode) {
+					dir = "L";
+				} else if (params.rightkey == keyCode) {
+					dir = "R";
+				}
+				if (!dir.isEmpty() && params.stepperclick != null) {					
+					String cmd = String.format("wm %s %s %s", i, dir, params.stepperclick);
+					SerialPortHelper.getInstance().Write(cmd);
+					return true;
+				}
+			} catch (IllegalArgumentException | IllegalAccessException
+					| NoSuchFieldException | SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+		return false;
+	}
+
 }
 
 class Params {
@@ -171,14 +237,18 @@ class Params {
 		id = _id;
 		paramField = null;
 		String[] i = id.split("_");
-		if (i[0].contains("key")) {
+		if (i[0].startsWith("key")) {
 			id = i[0] + "_" + i[1];
 			paramField = i[2];
-		} else if (i[0].contains("sensor") || i[0].contains("lengthmin")) {
+		} else if (i[0].startsWith("sensor") || i[0].startsWith("lengthmin")
+				|| i[0].startsWith("leftkey") || i[0].startsWith("rightkey")
+				|| i[0].startsWith("stepperclick")) {
 			id = "motor" + "_" + i[1];
 			paramField = i[0];
 		} else if (i.length == 1) {
 			paramField = "hot";
+		} else if (i[0].startsWith("mkey")) {
+
 		}
 	}
 }
