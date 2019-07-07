@@ -17,9 +17,6 @@ import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.KeyStroke;
 
-
-
-
 import java.awt.Dimension;
 
 import javax.swing.JTabbedPane;
@@ -71,6 +68,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
 import java.awt.event.KeyEvent;
+
 
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
@@ -160,19 +158,19 @@ public class MainWindow implements NativeKeyListener {
 	}
 	
 	
-	
+	private boolean motorsHotKeyPressed = false;
 	
 	@SuppressWarnings("static-access")
 	@Override
-	public void nativeKeyPressed(NativeKeyEvent e) {
-		if (program == null || program.programSteps.isEmpty() || program.busy || ProgramSettingsDialog.isOpen || HotKeyDialog.isOpen) {
+	public void nativeKeyPressed(NativeKeyEvent e) {		
+		if (motorsHotKeyPressed || program == null || program.programSteps.isEmpty() || program.busy || ProgramSettingsDialog.isOpen || HotKeyDialog.isOpen) {
 			return;
 		}		
 		int keyCode = e.getKeyCode();
-		if (Configuration.isHotKey(keyCode)) {
+		if (Configuration.hotKeyPressed(keyCode)) {			
+			motorsHotKeyPressed = true;
 			return;
-		}
-		if (keyCode == Configuration.current.motorToLeft) {			
+		} else if (keyCode == Configuration.current.motorToLeft) {			
 			ProgramStep step = program.programSteps.get(tabbedPanel
 					.getSelectedIndex());
 			step.keyPressed("L");
@@ -183,10 +181,14 @@ public class MainWindow implements NativeKeyListener {
 		}
 	}
 
-	@SuppressWarnings("static-access")
 	@Override
 	public void nativeKeyReleased(NativeKeyEvent e) {
-		if (program == null || program.programSteps.isEmpty() || program.busy || ProgramSettingsDialog.isOpen || HotKeyDialog.isOpen) {
+		if (motorsHotKeyPressed && e.getWhen() > 0) {
+			Configuration.hotKeyReleased();	
+			motorsHotKeyPressed = false;
+			return;
+		}
+		if (program == null || program.programSteps.isEmpty() || ProgramSettingsDialog.isOpen || HotKeyDialog.isOpen) {
 			return;
 		}
 		int keyCode = e.getKeyCode();
@@ -231,9 +233,11 @@ public class MainWindow implements NativeKeyListener {
 
 	@Override
 	public void nativeKeyTyped(NativeKeyEvent e) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub		
 
 	}
+	
+	
 
 	private void refreshButtonsEnabled() {
 		boolean param1 = program != null;

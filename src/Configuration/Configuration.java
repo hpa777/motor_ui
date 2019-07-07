@@ -4,14 +4,19 @@ import java.awt.event.InputEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 
 import javax.swing.KeyStroke;
 
+import jssc.SerialPort;
+import jssc.SerialPortException;
+
 import org.jnativehook.keyboard.NativeKeyEvent;
 
 import Core.SerialPortHelper;
+import Core.SerialPortReader;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -147,12 +152,12 @@ public final class Configuration {
 
 			} else if (params.paramField.equals("leftkey")) {
 				MotorParams param = (MotorParams) field.get(current);
-				if (param.leftkey != null) {
+				if (param != null && param.leftkey != null) {
 					value = NativeKeyEvent.getKeyText(param.leftkey);
 				}
 			} else if (params.paramField.equals("rightkey")) {
 				MotorParams param = (MotorParams) field.get(current);
-				if (param.rightkey != null) {
+				if (param != null && param.rightkey != null) {
 					value = NativeKeyEvent.getKeyText(param.rightkey);
 				}
 			} else if (params.paramField.equals("stepperclick")) {
@@ -194,8 +199,10 @@ public final class Configuration {
 	public static String getWorkDir() {
 		return current.work_dir == null ? "." : current.work_dir;
 	}
+	
+	private static byte pressedMotor;
 
-	public static boolean isHotKey(int keyCode) {		
+	public static boolean hotKeyPressed(int keyCode) {		
 		for (int i = 1; i <= 8; i++) {
 			try {
 				Field field = current.getClass().getDeclaredField(
@@ -205,14 +212,25 @@ public final class Configuration {
 					continue;
 				}
 				String dir = "";
-				if (params.leftkey == keyCode) {
+				if (params.leftkey != null && params.leftkey == keyCode) {
 					dir = "L";
-				} else if (params.rightkey == keyCode) {
+				} else if (params.rightkey != null && params.rightkey == keyCode) {
 					dir = "R";
 				}
 				if (!dir.isEmpty() && params.stepperclick != null) {					
-					String cmd = String.format("wm %s %s %s", i, dir, params.stepperclick);
-					SerialPortHelper.getInstance().Write(cmd);
+					byte[] buf = {0x40, 0x0, 0x0};
+					pressedMotor = (byte)(i-1);
+					if (dir.equals("L")) {
+						pressedMotor |= 1 << 7;
+					}
+					buf[1] = pressedMotor;
+					int s = params.stepperclick;
+					buf[2] = (byte)s;									
+					try {
+						SerialPortHelper.getInstance().serialPort.writeBytes(buf);						
+					} catch (SerialPortException e) {						
+						e.printStackTrace();
+					}					
 					return true;
 				}
 			} catch (IllegalArgumentException | IllegalAccessException
@@ -224,7 +242,52 @@ public final class Configuration {
 		}
 		return false;
 	}
+	
+	public static void hotKeyReleased() {
+		byte[] buf = {0x40, 0x0, 0x0};		
+		buf[1] = pressedMotor;
+		try {
+			SerialPortHelper.getInstance().serialPort.writeBytes(buf);						
+		} catch (SerialPortException e) {						
+			e.printStackTrace();
+		}		
+	}
+	
+}
 
+class PortReader extends SerialPortReader {	
+	
+	public void sendCommand(String command) {		
+		ok = false;
+		SerialPortHelper instance = SerialPortHelper.getInstance();		
+		try {
+			instance.serialPort.purgePort(SerialPort.PURGE_RXCLEAR);
+			instance.serialPort.purgePort(SerialPort.PURGE_TXCLEAR);
+			instance.serialPort.addEventListener(this,
+					SerialPort.MASK_RXCHAR);
+		} catch (SerialPortException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		do {		
+			instance.Write(command);
+			synchronized (waitOk) {
+				try {
+					waitOk.wait(15);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}			
+		} while (!ok);
+		SerialPortHelper.getInstance().ClearEvent();		
+	}
+	
+	@Override
+	public void parseMessage(String answer) {
+		// TODO Auto-generated method stub		
+	}
+	
 }
 
 class Params {

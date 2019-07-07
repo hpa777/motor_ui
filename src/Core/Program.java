@@ -150,7 +150,7 @@ public class Program {
 					e.printStackTrace();
 				}
 				synchronized (waitOk) {
-					try {
+					try {						
 						waitOk.wait(3000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block

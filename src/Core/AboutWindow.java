@@ -40,16 +40,16 @@ public class AboutWindow extends JDialog {
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
 		{
-			JLabel lblNewLabel = new JLabel("      Repunsator version 1.0");
+			JLabel lblNewLabel = new JLabel("      Repunsator version 3.0");
 			lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 15));
 			lblNewLabel.setBounds(10, 11, 338, 80);
 			lblNewLabel.setIcon(MainWindow.getIcon("logo.jpg"));
 			contentPanel.add(lblNewLabel);
 		}
 		
-		JLabel lblNewLabel_1 = new JLabel("\u041E\u041E\u041E \"\u042D\u043B\u0438\u0441\" 2015");
+		JLabel lblNewLabel_1 = new JLabel("\u041E\u041E\u041E \"\u042D\u043B\u0438\u0441\" 2015 - 2018");
 		lblNewLabel_1.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblNewLabel_1.setBounds(135, 76, 114, 14);
+		lblNewLabel_1.setBounds(135, 76, 167, 14);
 		contentPanel.add(lblNewLabel_1);
 	}
 }

@@ -96,9 +96,14 @@ public class ProgramSettingsDialog extends JDialog {
 				Component component = getMostRecentFocusOwner();
 				String name = component.getName();
 				if(name.startsWith("leftkey") || name.startsWith("rightkey")) {
-					int keyCode = e.getKeyCode();						
-					Configuration.setParametr(name, keyCode);
-					((JTextField)component).setText(NativeKeyEvent.getKeyText(keyCode));
+					int keyCode = e.getKeyCode();
+					if (keyCode != 14) {
+						Configuration.setParametr(name, keyCode);
+						((JTextField)component).setText(NativeKeyEvent.getKeyText(keyCode));
+					} else {
+						Configuration.setParametr(name, null);
+						((JTextField)component).setText("");
+					}
 				}
 			}
 

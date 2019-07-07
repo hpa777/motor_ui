@@ -7,6 +7,8 @@ import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import javax.swing.JOptionPane;
+
 import Configuration.Configuration;
 import Configuration.SerialPortSettings;
 import jssc.SerialPort;
@@ -21,7 +23,7 @@ public class SerialPortHelper {
 	}
 
 	protected static String LF;
-	
+
 	public PrintStream log;
 
 	private SerialPortHelper() {
@@ -35,8 +37,8 @@ public class SerialPortHelper {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		log = new PrintStream(fos);	
-		
+		log = new PrintStream(fos);
+
 		initPort();
 	}
 
@@ -47,13 +49,13 @@ public class SerialPortHelper {
 	}
 
 	public boolean IsControllerConect;
-	
-	public void ClearEvent(){
+
+	public void ClearEvent() {
 		try {
 			serialPort.removeEventListener();
 		} catch (SerialPortException e) {
 			// TODO Auto-generated catch block
-			
+
 		}
 	}
 
@@ -80,15 +82,66 @@ public class SerialPortHelper {
 						| SerialPort.FLOWCONTROL_XONXOFF_OUT;
 				break;
 			}
-			serialPort.setFlowControlMode(flowConrolMask);			
-			
-		//	IsControllerConect = serialPort.readString().toLowerCase().contains("usb-step-motor");
+			serialPort.setFlowControlMode(flowConrolMask);
+			PortReader reader = new PortReader();
+			reader.getStatus(serialPort);
+			// IsControllerConect =
+			// serialPort.readString().toLowerCase().contains("usb-step-motor");
 
 		} catch (SerialPortException e) {
 			IsControllerConect = false;
 			// LoggerEngine.logger.log(Level.SEVERE, "Exception: ", e);
 		}
 		
+	}
+	
+	public void readMessages() {
+		try {
+			serialPort.removeEventListener();
+		} catch (SerialPortException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		PortReader portReader = new PortReader();
+		portReader.getStatus(serialPort);
+	}
+
+	private class PortReader extends SerialPortReader {
+
+		public void getStatus(SerialPort port) {
+			try {
+				port.addEventListener(this, SerialPort.MASK_RXCHAR);
+			} catch (SerialPortException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public void parseMessage(String answer) {
+			// TODO Auto-generated method stub
+			//System.out.println(answer);
+			SerialPortHelper instance = SerialPortHelper.getInstance();
+			if (answer.equalsIgnoreCase("need key")) {
+				instance.Write(JOptionPane.showInputDialog("Введите ключ"));				
+			} else if (answer.equalsIgnoreCase("need masterkey")) {
+				instance.Write(JOptionPane.showInputDialog("Введите мастер ключ"));
+			} else if (answer.equalsIgnoreCase("key reject")) {
+				JOptionPane.showMessageDialog(null, "Неверный ключ",
+						"Внимание", JOptionPane.WARNING_MESSAGE);
+			} else if (answer.equalsIgnoreCase("Key accepted")) {
+				JOptionPane.showMessageDialog(null, "Ключ принят",
+						"Внимание", JOptionPane.INFORMATION_MESSAGE);
+			} else if (answer.equalsIgnoreCase("ready")) {
+				try {
+					instance.serialPort.removeEventListener();
+				} catch (SerialPortException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
 	}
 
 	public void closePort() {
@@ -113,40 +166,41 @@ public class SerialPortHelper {
 		if (IsPortOpen()) {
 			String cmd = command + LF;
 			try {
-		//		synchronized (monitor) {
-					serialPort.writeString(cmd);					
-					if(command.contains("run")){
-						log.println(command);
-					}
-		//			monitor.notifyAll();
-		//		}
+				// synchronized (monitor) {
+				serialPort.writeString(cmd);
+				if (command.contains("run")) {
+					log.println(command);
+				}
+				// System.out.println(command);
+				// monitor.notifyAll();
+				// }
 
 			} catch (SerialPortException e) {
 				// LoggerEngine.logger.log(Level.SEVERE, "Exception: ", e);
 			}
 		}
-		
+
 	}
-	
-	public static int crc16(byte[] bytes) { 
-        int crc = 0xFFFF;          // initial value
-        int polynomial = 0x1021;   // 0001 0000 0010 0001  (0, 5, 12)
-        for (byte b : bytes) {
-            for (int i = 0; i < 8; i++) {
-                boolean bit = ((b   >> (7-i) & 1) == 1);
-                boolean c15 = ((crc >> 15    & 1) == 1);
-                crc <<= 1;
-                if (c15 ^ bit) crc ^= polynomial;
-             }
-        }
-        crc &= 0xffff;        
-        return crc;
-    }	
-	
-	
+
+	public static int crc16(byte[] bytes) {
+		int crc = 0xFFFF; // initial value
+		int polynomial = 0x1021; // 0001 0000 0010 0001 (0, 5, 12)
+		for (byte b : bytes) {
+			for (int i = 0; i < 8; i++) {
+				boolean bit = ((b >> (7 - i) & 1) == 1);
+				boolean c15 = ((crc >> 15 & 1) == 1);
+				crc <<= 1;
+				if (c15 ^ bit)
+					crc ^= polynomial;
+			}
+		}
+		crc &= 0xffff;
+		return crc;
+	}
+
 	public static byte[] intToByteArray(int a) {
-		return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(a).array();
+		return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(a)
+				.array();
 	}
 
 }
-
