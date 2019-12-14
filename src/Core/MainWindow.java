@@ -811,17 +811,18 @@ public class MainWindow implements NativeKeyListener {
 					xStream.processAnnotations(Program.class);
 					try {
 						program = (Program) xStream.fromXML(chooser
-								.getSelectedFile());
+								.getSelectedFile());						
 						program.updateViews();
 						tabbedPanel.removeAll();
 						for (int i = 0; i < program.programSteps.size(); i++) {
 							ProgramStep step = program.programSteps.get(i);
 							tabbedPanel.addTab(String.format("блок %s", i + 1),
 									null, step.stepPanel, step.description);
+							step.updateModel(false);
 						}
 						refreshButtonsEnabled();
 						setProgramFile(chooser.getSelectedFile());
-						Program.needSave = false;
+						Program.needSave = false;						
 					} catch (Exception e1) {
 						// System.out.println(e1.getMessage());
 					}
