@@ -76,6 +76,8 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 public class MainWindow implements NativeKeyListener {
+	
+	private static MainWindow instance;
 
 	private JFrame frmRepunsator;
 
@@ -88,13 +90,17 @@ public class MainWindow implements NativeKeyListener {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					MainWindow window = new MainWindow();
-					window.frmRepunsator.setVisible(true);
+					instance = new MainWindow();
+					instance.frmRepunsator.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
+	}
+	
+	public static MainWindow getInstance() {
+		return instance;
 	}
 
 	/**
@@ -126,7 +132,7 @@ public class MainWindow implements NativeKeyListener {
 	 * Initialize the contents of the frame.
 	 */
 
-	public static boolean cyrcleflag = false;
+	private boolean cycleflag = false;
 
 	private Program program, userProg;
 
@@ -143,6 +149,8 @@ public class MainWindow implements NativeKeyListener {
 	private JLabel connectStatusLabel;
 
 	private JPanel prgPanel;
+	
+	public JCheckBox breakSensCheckBox;
 
 	private void registerKeyListner() {
 		try {
@@ -203,7 +211,7 @@ public class MainWindow implements NativeKeyListener {
 					runUserProgram("key_13_prog");
 					userProg = null;
 				} else {
-					program.runProgram(cyrcleflag);
+					program.runProgram(cycleflag);
 				}
 			}
 
@@ -278,6 +286,10 @@ public class MainWindow implements NativeKeyListener {
 			tabbedPanel.setToolTipTextAt(i, toolTip);
 		}
 	}
+	
+	public void setTabStopIcon(boolean stop) {
+		tabbedPanel.setIconAt(tabbedPanel.getSelectedIndex(), stop ? getIcon("StopHS.png") : null);
+	}
 
 	public static Icon getIcon(String name) {
 		URL imgURL = MainWindow.class.getResource(name);
@@ -330,7 +342,7 @@ public class MainWindow implements NativeKeyListener {
 		}
 	}
 
-	public static JLabel programStatusLabel;
+	public JLabel programStatusLabel;
 
 	private void runUserProgram(String query) {
 		String filename = (String) Configuration.getParametr(query, false);
@@ -599,24 +611,32 @@ public class MainWindow implements NativeKeyListener {
 		footerPanel.add(panel);
 		panel.setLayout(new FormLayout(new ColumnSpec[] {
 				FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("373px"), FormFactory.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("373px"), FormFactory.RELATED_GAP_COLSPEC,
-				FormFactory.DEFAULT_COLSPEC, }, new RowSpec[] {
-				FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("23px"), }));
+				ColumnSpec.decode("300px"),
+				FormFactory.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("300px"),
+				FormFactory.RELATED_GAP_COLSPEC,
+				FormFactory.DEFAULT_COLSPEC,
+				FormFactory.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("max(80dlu;default)"),},
+			new RowSpec[] {
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("23px"),}));
 
-		JButton button = new JButton("\u0421\u0442\u0430\u0440\u0442");
-		button.addActionListener(new ActionListener() {
+		JButton startButton = new JButton("\u0421\u0442\u0430\u0440\u0442");
+		startButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (program != null)
-					program.runProgram(cyrcleflag);
+				if (program != null) {
+					program.runProgram(cycleflag);
+					breakSensCheckBox.setEnabled(true);
+				}					
 			}
 		});
-		button.setFont(new Font("Tahoma", Font.BOLD, 11));
-		button.setFocusable(false);
-		panel.add(button, "2, 2");		
+		startButton.setFont(new Font("Tahoma", Font.BOLD, 11));
+		startButton.setFocusable(false);
+		panel.add(startButton, "2, 2");		
 
-		JButton button_1 = new JButton("\u0421\u0442\u043E\u043F");
-		button_1.addActionListener(new ActionListener() {
+		JButton stopButton = new JButton("\u0421\u0442\u043E\u043F");
+		stopButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (userProg != null) {
 					userProg.stopProgram();
@@ -626,31 +646,44 @@ public class MainWindow implements NativeKeyListener {
 				}
 				runUserProgram("key_13_prog");
 				userProg = null;
+				breakSensCheckBox.setSelected(false);
+				breakSensCheckBox.setEnabled(false);
 			}
 		});
-		button_1.setFocusable(false);
-		button_1.setFont(new Font("Tahoma", Font.BOLD, 11));
-		panel.add(button_1, "4, 2");
+		stopButton.setFocusable(false);
+		stopButton.setFont(new Font("Tahoma", Font.BOLD, 11));
+		panel.add(stopButton, "4, 2");
 
-		JCheckBox checkBox = new JCheckBox(
+		JCheckBox cycleCheckBox = new JCheckBox(
 				"\u0417\u0430\u0446\u0438\u043A\u043B\u0438\u0442\u044C \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u0443");
-		checkBox.setFocusable(false);
-		checkBox.addActionListener(new ActionListener() {
+		cycleCheckBox.setFocusable(false);
+		cycleCheckBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cyrcleflag = ((JCheckBox) e.getSource()).isSelected();
+				cycleflag = ((JCheckBox) e.getSource()).isSelected();
 			}
 		});
-		panel.add(checkBox, "6, 2");
+		panel.add(cycleCheckBox, "6, 2");
+		
+		breakSensCheckBox = new JCheckBox("\u0414\u0430\u0442\u0447\u0438\u043A \u043E\u0431\u0440\u044B\u0432\u0430");
+		breakSensCheckBox.setEnabled(false);
+		breakSensCheckBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				program.setBreakSensor(((JCheckBox) e.getSource()).isSelected());
+			}
+		});
+		panel.add(breakSensCheckBox, "8, 2");
 
 		JPanel panel_1 = new JPanel();
 		footerPanel.add(panel_1);
 		panel_1.setLayout(new FormLayout(new ColumnSpec[] {
 				FormFactory.RELATED_GAP_COLSPEC,
 				ColumnSpec.decode("left:36px"),
-				FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("138px"), },
-				new RowSpec[] { FormFactory.RELATED_GAP_ROWSPEC,
-						RowSpec.decode("24px"),
-						FormFactory.RELATED_GAP_ROWSPEC, }));
+				FormFactory.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("565px"),},
+			new RowSpec[] {
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("24px"),
+				FormFactory.RELATED_GAP_ROWSPEC,}));
 
 		connectStatusLabel = new JLabel();
 		panel_1.add(connectStatusLabel, "2, 2, left, default");
@@ -817,7 +850,7 @@ public class MainWindow implements NativeKeyListener {
 						for (int i = 0; i < program.programSteps.size(); i++) {
 							ProgramStep step = program.programSteps.get(i);
 							tabbedPanel.addTab(String.format("блок %s", i + 1),
-									null, step.stepPanel, step.description);
+									step.isStop ? getIcon("StopHS.png") : null, step.stepPanel, step.description);
 							step.updateModel(false);
 						}
 						refreshButtonsEnabled();

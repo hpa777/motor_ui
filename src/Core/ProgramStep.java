@@ -841,6 +841,14 @@ public class ProgramStep implements MouseWheelListener {
 
 		CheckBox stopCheckBox = new CheckBox("\u0421\u0442\u043E\u043F");
 		stopCheckBox.setFocusable(false);
+		stopCheckBox.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				CheckBox checkBox = (CheckBox)e.getSource();
+				MainWindow.getInstance().setTabStopIcon(checkBox.isSelected());				
+			}
+		});
 		task_panel.add(stopCheckBox, "6, 8, left, default");
 		components.put("IsStop", stopCheckBox);
 

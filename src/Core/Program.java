@@ -95,12 +95,33 @@ public class Program {
 		}
 	}
 	
+	public boolean setBreakSensor(boolean state) {
+		if (reader != null) {
+			return reader.setBreakSensor(state);
+		}
+		return false;
+	}
+	
 	private class PortReader extends SerialPortReader {
 
 		private Pattern blockNumber;
 
 		public PortReader() {
 			blockNumber = Pattern.compile("#(\\d*)");
+		}
+		
+		public boolean setBreakSensor(boolean state) {
+			ok=false;
+			SerialPortHelper.getInstance().Write(state ? "bs_on" : "bs_off");
+			synchronized (waitOk) {
+				try {
+					waitOk.wait(3000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return ok;
 		}
 		
 		public void stopProgram(){
@@ -122,7 +143,7 @@ public class Program {
 
 		public void runProgram(boolean cyrcl) {
 			if (!busy) {
-				MainWindow.programStatusLabel.setIcon(MainWindow.getIcon("Play.png"));
+				MainWindow.getInstance().programStatusLabel.setIcon(MainWindow.getIcon("Play.png"));
 				byte[] buff = updateModels(true);
 				Integer crc = SerialPortHelper.crc16(buff);
 				int len = buff.length;
@@ -161,7 +182,7 @@ public class Program {
 					busy = ok;
 					cyrcleCount = 1;
 				} else {
-					MainWindow.programStatusLabel.setText("Ошибка запуска программы");
+					MainWindow.getInstance().programStatusLabel.setText("Ошибка запуска программы");
 				}
 			}
 		}
@@ -171,11 +192,14 @@ public class Program {
 		@Override
 		public void parseMessage(String answer) {
 			//System.out.println(answer);
-			if (answer.equals("PRG STOP")) {
+			if (answer.equals("PRG STOP") || answer.equals("PRG BREAK")) {
 				busy = false;
 				SerialPortHelper.getInstance().ClearEvent();
-				MainWindow.programStatusLabel.setIcon(null);
-				MainWindow.programStatusLabel.setText("Программа завершена");
+				MainWindow window = MainWindow.getInstance();
+				window.programStatusLabel.setIcon(null);
+				window.programStatusLabel.setText("Программа завершена" + (answer.equals("PRG BREAK") ? ". Сработал датчик обрыва." : ""));
+				window.breakSensCheckBox.setSelected(false);
+				window.breakSensCheckBox.setEnabled(false);
 				return;
 			}
 			Matcher matcher = blockNumber.matcher(answer);
@@ -184,7 +208,7 @@ public class Program {
 				if(bn == 0 || bn == programSteps.size()){
 					cyrcleCount++;
 				} else {
-					MainWindow.programStatusLabel.setText(String.format("блок %s цикл %s",
+					MainWindow.getInstance().programStatusLabel.setText(String.format("блок %s цикл %s",
 							bn + 1, cyrcleCount));
 				}				
 			}
